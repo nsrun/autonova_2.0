@@ -1,0 +1,719 @@
+{% extends 'base.html' %}
+{% block title %}AutoNova — Buy & Sell Vehicles & Spare Parts in India{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ── HERO OVERRIDE ─────────────────────────────────── */
+.an-hero {
+  background: #f0f4ff;
+  min-height: 100vh;
+  padding: calc(var(--nav-h) + 3rem) 0 5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Canvas sits behind everything */
+#hero-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Soft radial overlay on top of canvas */
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  background:
+    radial-gradient(ellipse 65% 60% at 15% 45%, rgba(219,234,254,0.75) 0%, transparent 65%),
+    radial-gradient(ellipse 50% 50% at 85% 20%, rgba(239,246,255,0.70) 0%, transparent 55%);
+}
+
+/* Content sits above canvas */
+.hero-content {
+  position: relative;
+  z-index: 2;
+}
+
+/* Hero text stagger animations */
+.an-hero-badge    { animation: slideUp .6s  .05s cubic-bezier(.4,0,.2,1) both; }
+.an-hero-title    { animation: slideUp .65s .12s cubic-bezier(.4,0,.2,1) both; }
+.an-hero-subtitle { animation: slideUp .65s .20s cubic-bezier(.4,0,.2,1) both; }
+.an-search-form   { animation: slideUp .65s .28s cubic-bezier(.4,0,.2,1) both; }
+.hero-ctas        { animation: slideUp .65s .36s cubic-bezier(.4,0,.2,1) both; }
+@keyframes slideUp {
+  from { opacity:0; transform:translateY(22px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+/* Floating cards on right */
+.an-hero-illustration { position:relative; width:340px; height:380px; }
+.an-float-card {
+  position: absolute;
+  background: white;
+  border: 1px solid rgba(0,0,0,0.07);
+  border-radius: 16px;
+  padding: 14px 18px;
+  box-shadow: 0 8px 28px rgba(37,99,235,.10), 0 2px 8px rgba(0,0,0,.06);
+  display: flex; align-items: center; gap: 12px;
+  animation: floatUp var(--dur,4s) ease-in-out infinite;
+}
+.an-float-card i { font-size: 1.5rem; }
+.an-float-1 { top:20px;  left:10px;  --dur:4.0s; animation-delay:0s; }
+.an-float-2 { top:135px; right:0px;  --dur:4.6s; animation-delay:.7s; }
+.an-float-3 { bottom:80px; left:20px; --dur:4.3s; animation-delay:1.4s; }
+@keyframes floatUp {
+  0%,100% { transform:translateY(0); }
+  50%      { transform:translateY(-13px); }
+}
+.an-hero-center-icon {
+  position:absolute; top:50%; left:50%;
+  transform:translate(-50%,-55%);
+  width:74px; height:74px; border-radius:22px;
+  background: var(--grad-b); color:#fff;
+  display:flex; align-items:center; justify-content:center;
+  font-size:1.9rem;
+  box-shadow: 0 8px 28px rgba(37,99,235,.35);
+  animation: iconGlow 3s ease-in-out infinite;
+}
+@keyframes iconGlow {
+  0%,100% { box-shadow:0 8px 28px rgba(37,99,235,.35); }
+  50%      { box-shadow:0 8px 40px rgba(37,99,235,.55), 0 0 0 12px rgba(37,99,235,.08); }
+}
+
+/* Road strip */
+.hero-road {
+  position:absolute;
+  bottom: 0; left:0; right:0;
+  height: 56px;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* Stats section */
+.an-stats-bar { background:white; border-top:1px solid var(--i100); border-bottom:1px solid var(--i100); }
+.stat-item {
+  padding: 1.75rem 0; text-align:center;
+  border-right:1px solid var(--i100);
+  transition: background .2s;
+}
+.stat-item:last-child { border-right:none; }
+.stat-item:hover { background:var(--b50); }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ══ HERO ══════════════════════════════════════════════ -->
+<section class="an-hero" id="heroSection">
+  <canvas id="hero-canvas"></canvas>
+  <div class="hero-overlay"></div>
+
+  <div class="container hero-content">
+    <div class="row align-items-center min-vh-hero">
+
+      <!-- Left copy -->
+      <div class="col-lg-7">
+        <div class="an-hero-badge mb-3">
+          <i class="bi bi-geo-alt-fill me-1"></i>India's Vehicle Marketplace
+        </div>
+        <h1 class="an-hero-title mb-3">
+          Buy &amp; Sell <span class="text-gradient">Vehicles</span><br>&amp; Spare Parts
+        </h1>
+        <p class="an-hero-subtitle mb-4">
+          Find your next car, bike, truck or genuine spare parts.<br>
+          Get AI-powered price estimates before you list.
+        </p>
+        <form action="/browse/" method="GET" class="an-search-form mb-4">
+          <div class="an-search-wrap">
+            <div class="an-search-icon"><i class="bi bi-search"></i></div>
+            <input type="text" name="query" class="an-search-input"
+                   placeholder="Search cars, bikes, spare parts, brands...">
+            <select name="listing_type" class="an-search-select">
+              <option value="">All</option>
+              <option value="vehicle">Vehicles</option>
+              <option value="sparepart">Spare Parts</option>
+            </select>
+            <button type="submit" class="an-search-btn">
+              <i class="bi bi-search me-1"></i>Search
+            </button>
+          </div>
+        </form>
+        <div class="d-flex gap-3 flex-wrap hero-ctas">
+          <a href="/browse/?listing_type=vehicle" class="btn btn-primary btn-lg px-4">
+            <i class="bi bi-car-front me-2"></i>Browse Vehicles
+          </a>
+          <a href="/browse/?listing_type=sparepart" class="btn btn-outline-primary btn-lg px-4">
+            <i class="bi bi-gear me-2"></i>Spare Parts
+          </a>
+        </div>
+      </div>
+
+      <!-- Right illustration -->
+      <div class="col-lg-5 d-none d-lg-flex justify-content-center">
+        <div class="an-hero-illustration">
+          <div class="an-float-card an-float-1">
+            <i class="bi bi-car-front-fill text-primary"></i>
+            <div>
+              <div class="fw-semibold small">Cars</div>
+              <div class="text-muted" style="font-size:11px">{{ total_vehicles }}+ listed</div>
+            </div>
+          </div>
+          <div class="an-float-card an-float-2">
+            <i class="bi bi-bicycle text-success"></i>
+            <div>
+              <div class="fw-semibold small">Bikes</div>
+              <div class="text-muted" style="font-size:11px">Best prices</div>
+            </div>
+          </div>
+          <div class="an-float-card an-float-3">
+            <i class="bi bi-gear-fill text-warning"></i>
+            <div>
+              <div class="fw-semibold small">Spare Parts</div>
+              <div class="text-muted" style="font-size:11px">{{ total_parts }}+ parts</div>
+            </div>
+          </div>
+          <div class="an-hero-center-icon">
+            <i class="bi bi-lightning-charge-fill"></i>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ══ STATS ════════════════════════════════════════════ -->
+<section class="an-stats-bar">
+  <div class="container">
+    <div class="row g-0">
+      <div class="col-6 col-md-3 stat-item">
+        <div class="an-stat-num">{{ total_vehicles }}+</div>
+        <div class="an-stat-label">Vehicles Listed</div>
+      </div>
+      <div class="col-6 col-md-3 stat-item">
+        <div class="an-stat-num">{{ total_parts }}+</div>
+        <div class="an-stat-label">Spare Parts</div>
+      </div>
+      <div class="col-6 col-md-3 stat-item">
+        <div class="an-stat-num">100%</div>
+        <div class="an-stat-label">Free Listing</div>
+      </div>
+      <div class="col-6 col-md-3 stat-item">
+        <div class="an-stat-num">AI</div>
+        <div class="an-stat-label">Price Estimation</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ VEHICLE CATEGORIES ══════════════════════════════ -->
+<section class="py-5">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-end mb-4">
+      <div>
+        <h2 class="fw-bold mb-1">
+          <i class="bi bi-car-front-fill text-primary me-2"></i>Vehicle Categories
+        </h2>
+        <p class="text-muted mb-0">Find your perfect ride</p>
+      </div>
+      <a href="/browse/?listing_type=vehicle" class="btn btn-outline-primary btn-sm">
+        View All <i class="bi bi-arrow-right ms-1"></i>
+      </a>
+    </div>
+    <div class="row g-3">
+      {% for cat in vehicle_cats %}
+      <div class="col-6 col-md-4 col-lg-2">
+        <a href="/category/{{ cat.slug }}/" class="an-cat-card text-decoration-none">
+          <div class="an-cat-icon"><i class="bi {{ cat.icon }}"></i></div>
+          <div class="an-cat-name">{{ cat.name }}</div>
+          <div class="an-cat-count">{{ cat.vehicle_listings.count }} listed</div>
+        </a>
+      </div>
+      {% empty %}
+      <div class="col-12 text-muted text-center py-3">Add categories from Admin panel</div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ══ SPARE PART CATEGORIES ═══════════════════════════ -->
+<section class="py-5 bg-light-subtle">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-end mb-4">
+      <div>
+        <h2 class="fw-bold mb-1">
+          <i class="bi bi-gear-fill text-warning me-2"></i>Spare Part Categories
+        </h2>
+        <p class="text-muted mb-0">Genuine parts, best prices</p>
+      </div>
+      <a href="/browse/?listing_type=sparepart" class="btn btn-outline-warning btn-sm">
+        View All <i class="bi bi-arrow-right ms-1"></i>
+      </a>
+    </div>
+    <div class="row g-3">
+      {% for cat in spare_cats %}
+      <div class="col-6 col-md-4 col-lg-2">
+        <a href="/category/{{ cat.slug }}/" class="an-cat-card an-cat-part text-decoration-none">
+          <div class="an-cat-icon text-warning"><i class="bi {{ cat.icon }}"></i></div>
+          <div class="an-cat-name">{{ cat.name }}</div>
+          <div class="an-cat-count">{{ cat.sparepart_listings.count }} listed</div>
+        </a>
+      </div>
+      {% empty %}
+      <div class="col-12 text-muted text-center py-3">Add spare part categories from Admin panel</div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ══ LATEST VEHICLES ══════════════════════════════════ -->
+<section class="py-5">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-end mb-4">
+      <div>
+        <h2 class="fw-bold mb-1">Latest Vehicles</h2>
+        <p class="text-muted mb-0">Fresh arrivals this week</p>
+      </div>
+      <a href="/browse/?listing_type=vehicle" class="btn btn-outline-primary btn-sm">View All</a>
+    </div>
+    <div class="row g-4">
+      {% for listing in recent_vehicles %}
+      <div class="col-sm-6 col-lg-3">
+        {% include 'partials/vehicle_card.html' with listing=listing %}
+      </div>
+      {% empty %}
+      <div class="col-12 text-center py-5">
+        <i class="bi bi-car-front display-4 text-muted"></i>
+        <h5 class="text-muted mt-3">No vehicles yet</h5>
+        <a href="/sell/vehicle/" class="btn btn-primary mt-2">List first vehicle</a>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ══ LATEST SPARE PARTS ══════════════════════════════ -->
+{% if recent_parts %}
+<section class="py-5 bg-light-subtle">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-end mb-4">
+      <div>
+        <h2 class="fw-bold mb-1">Latest Spare Parts</h2>
+        <p class="text-muted mb-0">Genuine parts at best prices</p>
+      </div>
+      <a href="/browse/?listing_type=sparepart" class="btn btn-outline-warning btn-sm">View All</a>
+    </div>
+    <div class="row g-4">
+      {% for listing in recent_parts %}
+      <div class="col-sm-6 col-lg-3">
+        {% include 'partials/part_card.html' with listing=listing %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- ══ CTA ══════════════════════════════════════════════ -->
+<section class="py-5">
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-md-6">
+        <div class="an-cta-card p-5 h-100 text-center">
+          <i class="bi bi-car-front-fill display-4 text-primary mb-3"></i>
+          <h3 class="fw-bold mb-2">Selling a Vehicle?</h3>
+          <p class="text-muted mb-4">List your car, bike or truck. Get a free price estimate and reach thousands of buyers.</p>
+          <a href="{% if user.is_authenticated %}/sell/vehicle/{% else %}/accounts/register/{% endif %}"
+             class="btn btn-primary btn-lg">
+            <i class="bi bi-plus-circle me-2"></i>List Your Vehicle
+          </a>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="an-cta-card-part p-5 h-100 text-center">
+          <i class="bi bi-gear-fill display-4 text-warning mb-3"></i>
+          <h3 class="fw-bold mb-2">Have Spare Parts?</h3>
+          <p class="text-muted mb-4">Sell genuine spare parts and accessories. Add compatibility info to reach the right buyers.</p>
+          <a href="{% if user.is_authenticated %}/sell/part/{% else %}/accounts/register/{% endif %}"
+             class="btn btn-warning btn-lg text-white">
+            <i class="bi bi-plus-circle me-2"></i>List Spare Parts
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+/* ═══════════════════════════════════════════════════════════
+   AutoNova Hero Canvas — Vehicle Road Animation
+   Draws: moving road, lane dashes, cars/bikes/trucks driving
+   across the bottom, floating speed particles above,
+   subtle grid, and depth-layered glow orbs.
+═══════════════════════════════════════════════════════════ */
+(function () {
+  const canvas = document.getElementById('hero-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+
+  let W, H, raf;
+  function resize() {
+    W = canvas.width  = canvas.offsetWidth;
+    H = canvas.height = canvas.offsetHeight;
+  }
+  resize();
+  window.addEventListener('resize', () => { resize(); buildScene(); }, { passive: true });
+
+  /* ── PALETTE ─────────────────────────────────────────── */
+  const BLUE   = [37, 99, 235];
+  const GOLD   = [212, 175, 55];
+  const SKY    = [219, 234, 254];
+
+  /* ── BACKGROUND ORBS ─────────────────────────────────── */
+  const ORBS = [
+    { cx: 0.12, cy: 0.3,  r: 0.28, c: SKY,  a: 0.55, speed: 0.0008 },
+    { cx: 0.78, cy: 0.15, r: 0.22, c: SKY,  a: 0.45, speed: 0.0006 },
+    { cx: 0.50, cy: 0.80, r: 0.18, c: GOLD, a: 0.18, speed: 0.0010 },
+    { cx: 0.88, cy: 0.65, r: 0.16, c: BLUE, a: 0.10, speed: 0.0007 },
+  ];
+  let orbT = 0;
+
+  /* ── ROAD CONSTANTS (recalculated on resize) ──────────── */
+  let ROAD_Y, ROAD_H, LANE_Y, LANE2_Y;
+  function buildScene() {
+    ROAD_H = Math.round(H * 0.13);
+    ROAD_Y = H - ROAD_H;
+    LANE_Y = ROAD_Y + ROAD_H * 0.48;
+    LANE2_Y = ROAD_Y + ROAD_H * 0.72;
+  }
+  buildScene();
+
+  /* ── VEHICLE DEFINITIONS ──────────────────────────────── */
+  // drawFn(ctx, x, y, scale, color, tick)
+  function drawCar(ctx, x, y, s, col, t) {
+    const w = 72 * s, h = 30 * s;
+    ctx.save(); ctx.translate(x, y);
+
+    // Shadow
+    ctx.beginPath();
+    ctx.ellipse(0, h * 0.55, w * 0.42, h * 0.14, 0, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(0,0,0,0.10)'; ctx.fill();
+
+    // Body
+    ctx.beginPath();
+    ctx.roundRect(-w/2, -h/2, w, h, 6 * s);
+    ctx.fillStyle = col; ctx.fill();
+
+    // Cabin (roof)
+    ctx.beginPath();
+    ctx.roundRect(-w * 0.27, -h, w * 0.54, h * 0.55, 4 * s);
+    ctx.fillStyle = 'rgba(255,255,255,0.30)'; ctx.fill();
+
+    // Windshield glare
+    ctx.beginPath();
+    ctx.roundRect(-w * 0.22, -h * 0.95, w * 0.22, h * 0.42, 3 * s);
+    ctx.fillStyle = 'rgba(255,255,255,0.22)'; ctx.fill();
+
+    // Wheels
+    [-w*0.28, w*0.22].forEach(wx => {
+      ctx.beginPath(); ctx.arc(wx, h * 0.35, h * 0.30, 0, Math.PI * 2);
+      ctx.fillStyle = '#1e293b'; ctx.fill();
+      ctx.beginPath(); ctx.arc(wx, h * 0.35, h * 0.14, 0, Math.PI * 2);
+      ctx.fillStyle = '#e2e8f0'; ctx.fill();
+    });
+
+    // Headlight glow
+    const grd = ctx.createRadialGradient(w*0.52, 0, 0, w*0.52, 0, w*0.3);
+    grd.addColorStop(0, 'rgba(255,240,180,0.55)');
+    grd.addColorStop(1, 'rgba(255,240,180,0)');
+    ctx.beginPath(); ctx.arc(w*0.52, 0, w*0.3, 0, Math.PI*2);
+    ctx.fillStyle = grd; ctx.fill();
+
+    ctx.restore();
+  }
+
+  function drawTruck(ctx, x, y, s, col, t) {
+    const w = 100 * s, h = 34 * s;
+    ctx.save(); ctx.translate(x, y);
+
+    // Shadow
+    ctx.beginPath();
+    ctx.ellipse(0, h * 0.52, w * 0.44, h * 0.14, 0, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(0,0,0,0.10)'; ctx.fill();
+
+    // Trailer
+    ctx.beginPath();
+    ctx.roundRect(-w/2, -h/2, w * 0.68, h, 4 * s);
+    ctx.fillStyle = 'rgba(255,255,255,0.18)'; ctx.fill();
+    ctx.strokeStyle = col; ctx.lineWidth = 1.5 * s; ctx.stroke();
+
+    // Cab
+    ctx.beginPath();
+    ctx.roundRect(w * 0.2, -h/2, w * 0.3, h, 5 * s);
+    ctx.fillStyle = col; ctx.fill();
+
+    // Cab window
+    ctx.beginPath();
+    ctx.roundRect(w * 0.25, -h*0.42, w * 0.2, h * 0.45, 3 * s);
+    ctx.fillStyle = 'rgba(255,255,255,0.28)'; ctx.fill();
+
+    // Wheels x4
+    [-w*0.36, -w*0.12, w*0.12, w*0.36].forEach(wx => {
+      ctx.beginPath(); ctx.arc(wx, h * 0.38, h * 0.26, 0, Math.PI * 2);
+      ctx.fillStyle = '#1e293b'; ctx.fill();
+      ctx.beginPath(); ctx.arc(wx, h * 0.38, h * 0.12, 0, Math.PI * 2);
+      ctx.fillStyle = '#e2e8f0'; ctx.fill();
+    });
+
+    ctx.restore();
+  }
+
+  function drawBike(ctx, x, y, s, col, t) {
+    const r = 16 * s;
+    ctx.save(); ctx.translate(x, y);
+
+    // Wheels
+    [- r * 1.1, r * 1.1].forEach(wx => {
+      ctx.beginPath(); ctx.arc(wx, r * 0.35, r, 0, Math.PI * 2);
+      ctx.strokeStyle = '#334155'; ctx.lineWidth = 3 * s; ctx.stroke();
+      ctx.beginPath(); ctx.arc(wx, r * 0.35, r * 0.35, 0, Math.PI * 2);
+      ctx.fillStyle = '#334155'; ctx.fill();
+    });
+
+    // Frame
+    ctx.beginPath();
+    ctx.moveTo(-r * 1.1, r * 0.35);
+    ctx.lineTo(0, -r * 0.8);
+    ctx.lineTo(r * 1.1, r * 0.35);
+    ctx.strokeStyle = col; ctx.lineWidth = 4 * s; ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(0, -r * 0.8);
+    ctx.lineTo(-r * 0.3, -r * 1.6);
+    ctx.strokeStyle = col; ctx.lineWidth = 3 * s; ctx.stroke();
+
+    // Rider
+    ctx.beginPath();
+    ctx.arc(-r * 0.3, -r * 2.1, r * 0.55, 0, Math.PI * 2);
+    ctx.fillStyle = col; ctx.fill();
+
+    ctx.restore();
+  }
+
+  function drawScooter(ctx, x, y, s, col, t) {
+    const r = 13 * s;
+    ctx.save(); ctx.translate(x, y);
+
+    [- r * 1.2, r * 0.9].forEach((wx, i) => {
+      ctx.beginPath(); ctx.arc(wx, r * 0.4, r * (i === 0 ? 1 : 0.85), 0, Math.PI * 2);
+      ctx.strokeStyle = '#334155'; ctx.lineWidth = 2.5 * s; ctx.stroke();
+    });
+
+    ctx.beginPath();
+    ctx.moveTo(-r * 1.2, r * 0.4);
+    ctx.bezierCurveTo(-r * 0.3, -r * 0.6, r * 0.2, -r * 0.6, r * 0.9, r * 0.4);
+    ctx.strokeStyle = col; ctx.lineWidth = 4 * s; ctx.stroke();
+
+    ctx.beginPath(); ctx.arc(-r * 0.2, -r * 1.5, r * 0.5, 0, Math.PI * 2);
+    ctx.fillStyle = col; ctx.fill();
+
+    ctx.restore();
+  }
+
+  const VEHICLE_TYPES = [
+    { fn: drawCar,     w: 72,  h: 30 },
+    { fn: drawCar,     w: 72,  h: 30 },
+    { fn: drawTruck,   w: 100, h: 34 },
+    { fn: drawBike,    w: 44,  h: 40 },
+    { fn: drawScooter, w: 36,  h: 36 },
+  ];
+
+  const CAR_COLORS = [
+    '#2563EB','#1E40AF','#3B82F6',
+    '#1d4ed8','#1e3a8a','#0369a1',
+    '#DC2626','#16A34A','#7C3AED',
+    '#D4AF37','#334155','#0891B2',
+  ];
+
+  /* ── VEHICLES ─────────────────────────────────────────── */
+  let vehicles = [];
+  function spawnVehicle(forceX) {
+    const lane = Math.random() > 0.42 ? 0 : 1;   // 0 = far lane, 1 = near lane
+    const scale = lane === 0 ? 0.62 : 0.80;
+    const speed = (lane === 0 ? 1.4 : 2.0) + Math.random() * 1.2;
+    const type  = VEHICLE_TYPES[Math.floor(Math.random() * VEHICLE_TYPES.length)];
+    const col   = CAR_COLORS[Math.floor(Math.random() * CAR_COLORS.length)];
+    const startX = forceX != null ? forceX : -type.w * scale * 1.5;
+    return {
+      x: startX,
+      y: lane === 0 ? LANE_Y : LANE2_Y,
+      scale, speed, type, col, lane,
+      exhaust: [],
+    };
+  }
+
+  // Seed initial vehicles spread across the road
+  function initVehicles() {
+    vehicles = [];
+    for (let i = 0; i < 6; i++) {
+      const v = spawnVehicle(Math.random() * W);
+      vehicles.push(v);
+    }
+  }
+  initVehicles();
+
+  /* ── PARTICLES (speed streaks + dust) ────────────────── */
+  const PARTICLES = Array.from({ length: 60 }, () => ({
+    x: Math.random(),
+    y: Math.random() * 0.85,
+    len: Math.random() * 28 + 6,
+    speed: (Math.random() * 0.0008 + 0.0003),
+    a: Math.random() * 0.12 + 0.03,
+    col: Math.random() > 0.6 ? BLUE : SKY,
+  }));
+
+  /* ── GRID LINES ───────────────────────────────────────── */
+  function drawGrid() {
+    ctx.save();
+    ctx.globalAlpha = 0.03;
+    ctx.strokeStyle = '#2563EB';
+    ctx.lineWidth = 1;
+    const spacing = 55;
+    for (let x = 0; x < W; x += spacing) {
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, ROAD_Y); ctx.stroke();
+    }
+    for (let y = 0; y < ROAD_Y; y += spacing) {
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  /* ── BACKGROUND ORBS ──────────────────────────────────── */
+  function drawOrbs() {
+    orbT += 0.008;
+    ORBS.forEach((o, i) => {
+      const pulse = 0.5 + 0.5 * Math.sin(orbT * 0.6 + i * 1.8);
+      const r = (o.r + pulse * 0.04) * Math.min(W, H);
+      const cx = (o.cx + Math.sin(orbT * o.speed * 60 + i) * 0.03) * W;
+      const cy = (o.cy + Math.cos(orbT * o.speed * 50 + i) * 0.025) * H;
+      const grd = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+      grd.addColorStop(0, `rgba(${o.c[0]},${o.c[1]},${o.c[2]},${o.a})`);
+      grd.addColorStop(1, `rgba(${o.c[0]},${o.c[1]},${o.c[2]},0)`);
+      ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.fillStyle = grd; ctx.fill();
+    });
+  }
+
+  /* ── SPEED STREAKS ────────────────────────────────────── */
+  function drawParticles() {
+    PARTICLES.forEach(p => {
+      p.x -= p.speed;
+      if (p.x < -p.len / W) p.x = 1 + Math.random() * 0.1;
+      ctx.beginPath();
+      ctx.moveTo(p.x * W, p.y * ROAD_Y);
+      ctx.lineTo((p.x + p.len / W) * W, p.y * ROAD_Y);
+      ctx.strokeStyle = `rgba(${p.col[0]},${p.col[1]},${p.col[2]},${p.a})`;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    });
+  }
+
+  /* ── ROAD ─────────────────────────────────────────────── */
+  function drawRoad() {
+    // Asphalt
+    const roadGrd = ctx.createLinearGradient(0, ROAD_Y, 0, H);
+    roadGrd.addColorStop(0, 'rgba(30,41,59,0.82)');
+    roadGrd.addColorStop(1, 'rgba(15,23,42,0.90)');
+    ctx.fillStyle = roadGrd;
+    ctx.fillRect(0, ROAD_Y, W, ROAD_H);
+
+    // Top edge glow
+    const edgeGrd = ctx.createLinearGradient(0, ROAD_Y, 0, ROAD_Y + 8);
+    edgeGrd.addColorStop(0, 'rgba(37,99,235,0.35)');
+    edgeGrd.addColorStop(1, 'transparent');
+    ctx.fillStyle = edgeGrd;
+    ctx.fillRect(0, ROAD_Y, W, 8);
+
+    // Road surface texture lines
+    ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+    ctx.lineWidth = 1;
+    for (let y = ROAD_Y + 12; y < H; y += 14) {
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+    }
+
+    // Centre dashes
+    ctx.setLineDash([28, 18]);
+    ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+    ctx.lineWidth = 2;
+    const midY = ROAD_Y + ROAD_H * 0.60;
+    ctx.beginPath(); ctx.moveTo(0, midY); ctx.lineTo(W, midY); ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Side lines
+    ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(0, ROAD_Y + 4); ctx.lineTo(W, ROAD_Y + 4); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, H - 3); ctx.lineTo(W, H - 3); ctx.stroke();
+  }
+
+  /* ── VEHICLES DRAW + UPDATE ───────────────────────────── */
+  let tick = 0;
+  function updateVehicles() {
+    // Keep 5–7 vehicles on screen
+    while (vehicles.length < 7) vehicles.push(spawnVehicle());
+    vehicles = vehicles.filter(v => v.x < W + 200);
+
+    // Sort by lane so far lane draws first (depth)
+    vehicles.sort((a, b) => a.lane - b.lane);
+
+    vehicles.forEach(v => {
+      v.x += v.speed;
+
+      // Exhaust puff
+      if (tick % 8 === 0) {
+        v.exhaust.push({ x: v.x - v.type.w * v.scale * 0.52, y: v.y - v.type.h * v.scale * 0.1, r: 3, a: 0.22 });
+      }
+      v.exhaust = v.exhaust.filter(e => e.a > 0.01);
+      v.exhaust.forEach(e => { e.x -= 0.6; e.y -= 0.3; e.r += 0.3; e.a -= 0.012; });
+
+      // Draw exhaust
+      v.exhaust.forEach(e => {
+        ctx.beginPath(); ctx.arc(e.x, e.y, e.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(180,190,210,${e.a})`; ctx.fill();
+      });
+
+      // Draw vehicle
+      v.type.fn(ctx, v.x, v.y, v.scale, v.col, tick);
+
+      // Respawn off-screen
+      if (v.x > W + 160) {
+        const nv = spawnVehicle();
+        Object.assign(v, nv);
+      }
+    });
+  }
+
+  /* ── MAIN LOOP ────────────────────────────────────────── */
+  function loop() {
+    tick++;
+    ctx.clearRect(0, 0, W, H);
+    drawOrbs();
+    drawGrid();
+    drawParticles();
+    drawRoad();
+    updateVehicles();
+    raf = requestAnimationFrame(loop);
+  }
+
+  loop();
+})();
+</script>
+{% endblock %}

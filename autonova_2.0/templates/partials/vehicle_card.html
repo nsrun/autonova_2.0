@@ -1,0 +1,33 @@
+<div class="an-listing-card h-100">
+    {% with img=listing.get_primary_image %}
+    <a href="/vehicle/{{ listing.slug }}/" class="text-decoration-none">
+        <div class="an-listing-img-wrap">
+            {% if img %}
+            <img src="{{ img.image.url }}" alt="{{ listing.title }}" class="an-listing-img">
+            {% else %}
+            <div class="an-listing-img-placeholder"><i class="bi bi-car-front"></i></div>
+            {% endif %}
+            {% if listing.category %}
+            <div class="an-listing-category-badge">{{ listing.category.name }}</div>
+            {% endif %}
+            <span class="an-listing-condition badge bg-{{ listing.get_condition_badge }}">{{ listing.get_condition_display }}</span>
+        </div>
+        <div class="an-listing-body">
+            <h6 class="an-listing-title">{{ listing.title|truncatechars:52 }}</h6>
+            <div class="an-listing-specs">
+                <span><i class="bi bi-speedometer2 me-1"></i>{{ listing.km_driven|floatformat:0 }} km</span>
+                <span><i class="bi bi-fuel-pump me-1"></i>{{ listing.get_fuel_type_display }}</span>
+                <span><i class="bi bi-gear me-1"></i>{{ listing.get_transmission_display }}</span>
+            </div>
+            <div class="an-listing-meta mt-1">
+                <span><i class="bi bi-geo-alt me-1"></i>{{ listing.location }}</span>
+                <span>{{ listing.year }}</span>
+            </div>
+            <div class="d-flex align-items-center justify-content-between mt-auto pt-2">
+                <div class="an-listing-price">₹{{ listing.price|floatformat:0 }}</div>
+                {% if listing.is_negotiable %}<span class="badge bg-success-subtle text-success" style="font-size:10px">Negotiable</span>{% endif %}
+            </div>
+        </div>
+    </a>
+    {% endwith %}
+</div>

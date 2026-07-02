@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% block title %}{{ listing.title }} — AutoNova{% endblock %}
+{% block content %}
+<div class="container py-5">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb an-breadcrumb">
+            <li class="breadcrumb-item"><a href="/">Home</a></li>
+            <li class="breadcrumb-item"><a href="/browse/?listing_type=sparepart">Spare Parts</a></li>
+            {% if listing.category %}<li class="breadcrumb-item"><a href="/category/{{ listing.category.slug }}/">{{ listing.category.name }}</a></li>{% endif %}
+            <li class="breadcrumb-item active">{{ listing.title|truncatechars:40 }}</li>
+        </ol>
+    </nav>
+
+    <div class="row g-5">
+        <div class="col-lg-7">
+            {% with images=listing.images.all %}
+            {% if images %}
+            <div class="an-gallery-main mb-3">
+                <img src="{{ images.0.image.url }}" id="mainImage" alt="{{ listing.title }}" class="an-gallery-main-img">
+            </div>
+            {% if images|length > 1 %}
+            <div class="d-flex gap-2 flex-wrap">
+                {% for img in images %}
+                <img src="{{ img.image.url }}" class="an-gallery-thumb {% if forloop.first %}active{% endif %}"
+                     onclick="document.getElementById('mainImage').src=this.src; document.querySelectorAll('.an-gallery-thumb').forEach(t=>t.classList.remove('active')); this.classList.add('active');">
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% else %}
+            <div class="an-gallery-placeholder"><i class="bi bi-gear display-3 text-muted"></i><p class="text-muted mt-2">No images</p></div>
+            {% endif %}
+            {% endwith %}
+            <div class="an-card p-4 mt-4">
+                <h5 class="fw-bold mb-3">Description</h5>
+                <p class="text-muted lh-lg">{{ listing.description|linebreaks }}</p>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="an-detail-card">
+                <div class="d-flex gap-2 mb-3 flex-wrap">
+                    {% if listing.category %}<span class="badge an-badge-part"><i class="bi {{ listing.category.icon }} me-1"></i>{{ listing.category.name }}</span>{% endif %}
+                    <span class="badge bg-{{ listing.get_condition_badge }}">{{ listing.get_condition_display }}</span>
+                </div>
+                <h1 class="an-detail-title">{{ listing.title }}</h1>
+                <div class="an-detail-price" style="color: var(--an-warning);">₹{{ listing.price|floatformat:0 }} {% if listing.is_negotiable %}<small class="text-success fs-6 fw-normal">Negotiable</small>{% endif %}</div>
+
+                <!-- Compatibility Box -->
+                <div class="an-compat-box mb-4">
+                    <div class="an-compat-header"><i class="bi bi-check-circle-fill me-2"></i>Compatibility</div>
+                    <div class="an-compat-body">
+                        <div class="an-spec-row"><span class="an-spec-label">Vehicle Type</span><span class="an-spec-value">{{ listing.get_compatible_vehicle_type_display }}</span></div>
+                        {% if listing.compatible_brand %}<div class="an-spec-row"><span class="an-spec-label">Compatible Brand</span><span class="an-spec-value">{{ listing.compatible_brand }}</span></div>{% endif %}
+                        {% if listing.compatible_model %}<div class="an-spec-row"><span class="an-spec-label">Compatible Model</span><span class="an-spec-value">{{ listing.compatible_model }}</span></div>{% endif %}
+                        {% if listing.compatible_year_from or listing.compatible_year_to %}<div class="an-spec-row"><span class="an-spec-label">Year Range</span><span class="an-spec-value">{{ listing.compatible_year_from|default:"" }}{% if listing.compatible_year_from and listing.compatible_year_to %} – {% endif %}{{ listing.compatible_year_to|default:"" }}</span></div>{% endif %}
+                    </div>
+                </div>
+
+                <div class="an-detail-specs mb-4">
+                    <div class="an-spec-row"><span class="an-spec-label">Part Name</span><span class="an-spec-value">{{ listing.part_name }}</span></div>
+                    {% if listing.part_number %}<div class="an-spec-row"><span class="an-spec-label">Part Number</span><span class="an-spec-value fw-mono">{{ listing.part_number }}</span></div>{% endif %}
+                    {% if listing.brand %}<div class="an-spec-row"><span class="an-spec-label">Brand</span><span class="an-spec-value">{{ listing.brand }}</span></div>{% endif %}
+                    <div class="an-spec-row"><span class="an-spec-label">Part Type</span><span class="an-spec-value">{{ listing.get_part_type_display }}</span></div>
+                    <div class="an-spec-row"><span class="an-spec-label">Quantity</span><span class="an-spec-value">{{ listing.quantity }} available</span></div>
+                    <div class="an-spec-row"><span class="an-spec-label">Location</span><span class="an-spec-value">{{ listing.location }}</span></div>
+                    <div class="an-spec-row"><span class="an-spec-label">Listed</span><span class="an-spec-value">{{ listing.created_at|date:"M d, Y" }}</span></div>
+                </div>
+
+                <div class="an-seller-box mb-4">
+                    <div class="an-avatar-lg">{{ listing.seller.username|first|upper }}</div>
+                    <div>
+                        <div class="fw-semibold">{{ listing.seller.get_full_name|default:listing.seller.username }}</div>
+                        <div class="text-muted small">
+                            {% if listing.seller.profile.is_dealer %}<span class="badge bg-primary-subtle text-primary me-1">Dealer</span>{% endif %}
+                            Member since {{ listing.seller.date_joined|date:"Y" }}
+                        </div>
+                    </div>
+                </div>
+
+                {% if user == listing.seller %}
+                <div class="d-flex gap-2">
+                    <a href="/part/{{ listing.slug }}/edit/" class="btn btn-outline-primary flex-fill"><i class="bi bi-pencil me-1"></i>Edit</a>
+                    <a href="/part/{{ listing.slug }}/delete/" class="btn btn-outline-danger flex-fill"><i class="bi bi-trash me-1"></i>Delete</a>
+                </div>
+                {% else %}
+                <a href="mailto:{{ listing.seller.email }}" class="btn btn-warning w-100 btn-lg text-white"><i class="bi bi-envelope me-2"></i>Contact Seller</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% if related %}
+    <div class="mt-5">
+        <h4 class="fw-bold mb-4">Similar Parts</h4>
+        <div class="row g-4">
+            {% for r in related %}<div class="col-sm-6 col-lg-3">{% include 'partials/part_card.html' with listing=r %}</div>{% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

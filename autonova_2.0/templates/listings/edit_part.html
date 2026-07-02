@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block title %}Edit Spare Part — AutoNova{% endblock %}
+{% block content %}
+<div class="an-page-header py-4 mb-5"><div class="container"><h1 class="fw-bold mb-0"><i class="bi bi-pencil me-2 text-warning"></i>Edit Spare Part</h1><p class="text-muted mb-0">{{ listing.title }}</p></div></div>
+<div class="container pb-5">
+    <div class="row justify-content-center"><div class="col-lg-9">
+        <form method="POST" enctype="multipart/form-data" novalidate>
+            {% csrf_token %}
+            <div class="an-form-section mb-4">
+                <div class="an-form-section-header"><span class="an-step-num" style="background:var(--an-warning)"><i class="bi bi-pencil"></i></span><h5 class="mb-0">Update Part Details</h5></div>
+                <div class="an-form-body">
+                    <div class="row g-3">
+                        <div class="col-12"><label class="form-label fw-semibold">Title</label>{{ form.title }}</div>
+                        <div class="col-md-6"><label class="form-label fw-semibold">Category</label>{{ form.category }}</div>
+                        <div class="col-md-6"><label class="form-label fw-semibold">Part Type</label>{{ form.part_type }}</div>
+                        <div class="col-md-6"><label class="form-label fw-semibold">Part Name</label>{{ form.part_name }}</div>
+                        <div class="col-md-6"><label class="form-label fw-semibold">Part Number</label>{{ form.part_number }}</div>
+                        <div class="col-md-6"><label class="form-label fw-semibold">Brand</label>{{ form.brand }}</div>
+                        <div class="col-md-6"><label class="form-label fw-semibold">Condition</label>{{ form.condition }}</div>
+                        <div class="col-12"><label class="form-label fw-semibold">Description</label>{{ form.description }}</div>
+                        <div class="col-md-6"><label class="form-label fw-semibold">Compatible Vehicle Type</label>{{ form.compatible_vehicle_type }}</div>
+                        <div class="col-md-6"><label class="form-label fw-semibold">Compatible Brand</label>{{ form.compatible_brand }}</div>
+                        <div class="col-md-4"><label class="form-label fw-semibold">Compatible Model</label>{{ form.compatible_model }}</div>
+                        <div class="col-md-4"><label class="form-label fw-semibold">Year From</label>{{ form.compatible_year_from }}</div>
+                        <div class="col-md-4"><label class="form-label fw-semibold">Year To</label>{{ form.compatible_year_to }}</div>
+                        <div class="col-md-4"><label class="form-label fw-semibold">Quantity</label>{{ form.quantity }}</div>
+                        <div class="col-md-4"><label class="form-label fw-semibold">Price (₹)</label><div class="input-group"><span class="input-group-text">₹</span>{{ form.price }}</div></div>
+                        <div class="col-md-4"><label class="form-label fw-semibold">Location</label>{{ form.location }}</div>
+                        {% if listing.images.exists %}
+                        <div class="col-12"><label class="form-label fw-semibold">Current Photos</label><div class="d-flex flex-wrap gap-2">{% for img in listing.images.all %}<div class="an-preview-thumb"><img src="{{ img.image.url }}" alt=""></div>{% endfor %}</div></div>
+                        {% endif %}
+                        <div class="col-12"><label class="form-label fw-semibold">Add More Photos</label><input type="file" name="images" multiple accept="image/*" class="form-control"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-warning text-white flex-fill btn-lg"><i class="bi bi-check-circle me-2"></i>Save Changes</button>
+                <a href="/accounts/dashboard/" class="btn btn-outline-secondary btn-lg">Cancel</a>
+            </div>
+        </form>
+    </div></div>
+</div>
+{% endblock %}

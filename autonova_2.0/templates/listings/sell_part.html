@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% block title %}List a Spare Part — AutoNova{% endblock %}
+{% block content %}
+<div class="an-page-header py-4 mb-5">
+    <div class="container">
+        <div class="d-flex align-items-center gap-3">
+            <a href="/sell/" class="btn btn-light btn-sm"><i class="bi bi-arrow-left"></i></a>
+            <div><h1 class="fw-bold mb-0"><i class="bi bi-gear-fill me-2 text-warning"></i>List a Spare Part</h1><p class="text-muted mb-0 small">Add compatibility info to help buyers find your part easily.</p></div>
+        </div>
+    </div>
+</div>
+<div class="container pb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-9">
+            <form method="POST" enctype="multipart/form-data" novalidate>
+                {% csrf_token %}
+
+                <!-- Section 1: Part Info -->
+                <div class="an-form-section mb-4">
+                    <div class="an-form-section-header">
+                        <span class="an-step-num" style="background:var(--an-warning)">1</span>
+                        <div><h5 class="mb-0">Part Information</h5><small class="text-muted">What are you selling?</small></div>
+                    </div>
+                    <div class="an-form-body">
+                        <div class="mb-3"><label class="form-label fw-semibold">Listing Title <span class="text-danger">*</span></label>{{ form.title }}</div>
+                        <div class="row g-3">
+                            <div class="col-md-6"><label class="form-label fw-semibold">Category <span class="text-danger">*</span></label>{{ form.category }}</div>
+                            <div class="col-md-6"><label class="form-label fw-semibold">Part Type <span class="text-danger">*</span></label>{{ form.part_type }}</div>
+                            <div class="col-md-6"><label class="form-label fw-semibold">Part Name <span class="text-danger">*</span></label>{{ form.part_name }}</div>
+                            <div class="col-md-6"><label class="form-label fw-semibold">Part Number / OEM Code</label>{{ form.part_number }}</div>
+                            <div class="col-md-6"><label class="form-label fw-semibold">Brand / Manufacturer</label>{{ form.brand }}</div>
+                            <div class="col-md-6"><label class="form-label fw-semibold">Condition <span class="text-danger">*</span></label>{{ form.condition }}</div>
+                        </div>
+                        <div class="mt-3"><label class="form-label fw-semibold">Description <span class="text-danger">*</span></label>{{ form.description }}</div>
+                    </div>
+                </div>
+
+                <!-- Section 2: Compatibility -->
+                <div class="an-form-section mb-4">
+                    <div class="an-form-section-header">
+                        <span class="an-step-num" style="background:var(--an-warning)">2</span>
+                        <div><h5 class="mb-0">Vehicle Compatibility</h5><small class="text-muted">Help buyers know if this part fits their vehicle</small></div>
+                    </div>
+                    <div class="an-form-body">
+                        <div class="row g-3">
+                            <div class="col-md-6"><label class="form-label fw-semibold">Vehicle Type <span class="text-danger">*</span></label>{{ form.compatible_vehicle_type }}</div>
+                            <div class="col-md-6"><label class="form-label fw-semibold">Compatible Brand</label>{{ form.compatible_brand }}</div>
+                            <div class="col-md-4"><label class="form-label fw-semibold">Compatible Model</label>{{ form.compatible_model }}</div>
+                            <div class="col-md-4"><label class="form-label fw-semibold">Year From</label>{{ form.compatible_year_from }}</div>
+                            <div class="col-md-4"><label class="form-label fw-semibold">Year To</label>{{ form.compatible_year_to }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 3: Pricing -->
+                <div class="an-form-section mb-4">
+                    <div class="an-form-section-header">
+                        <span class="an-step-num" style="background:var(--an-warning)">3</span>
+                        <div><h5 class="mb-0">Pricing & Stock</h5></div>
+                    </div>
+                    <div class="an-form-body">
+                        <div class="row g-3">
+                            <div class="col-md-4"><label class="form-label fw-semibold">Quantity Available</label>{{ form.quantity }}</div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Price (₹) <span class="text-danger">*</span></label>
+                                <div class="input-group"><span class="input-group-text">₹</span>{{ form.price }}</div>
+                            </div>
+                            <div class="col-md-4"><label class="form-label fw-semibold">Location <span class="text-danger">*</span></label>{{ form.location }}</div>
+                        </div>
+                        <div class="form-check mt-3">{{ form.is_negotiable }}<label class="form-check-label ms-2 fw-semibold">Price is Negotiable</label></div>
+                    </div>
+                </div>
+
+                <!-- Section 4: Images -->
+                <div class="an-form-section mb-4">
+                    <div class="an-form-section-header">
+                        <span class="an-step-num" style="background:var(--an-warning)">4</span>
+                        <div><h5 class="mb-0">Upload Photos</h5></div>
+                    </div>
+                    <div class="an-form-body">
+                        <div class="an-upload-zone" id="uploadZone">
+                            <input type="file" name="images" id="imageInput" multiple accept="image/*" class="an-upload-input">
+                            <i class="bi bi-cloud-arrow-up display-4 text-warning"></i>
+                            <h6 class="mt-2">Drag & drop photos here</h6>
+                            <p class="text-muted small">or click to browse</p>
+                        </div>
+                        <div id="imagePreview" class="d-flex flex-wrap gap-2 mt-3"></div>
+                    </div>
+                </div>
+
+                <div class="an-card p-4 text-center">
+                    <div class="an-approval-notice mb-3"><i class="bi bi-info-circle-fill text-info me-2"></i>Your listing will be reviewed before going live.</div>
+                    <button type="submit" class="btn btn-warning text-white btn-lg px-5"><i class="bi bi-send me-2"></i>Submit Part Listing</button>
+                    <a href="/accounts/dashboard/" class="btn btn-link ms-2">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+const input = document.getElementById('imageInput');
+const preview = document.getElementById('imagePreview');
+const zone = document.getElementById('uploadZone');
+zone.addEventListener('click', () => input.click());
+zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+zone.addEventListener('drop', e => { e.preventDefault(); zone.classList.remove('drag-over'); showPreviews(e.dataTransfer.files); });
+input.addEventListener('change', () => showPreviews(input.files));
+function showPreviews(files) {
+    preview.innerHTML = '';
+    [...files].forEach((file, i) => {
+        const reader = new FileReader();
+        reader.onload = e => {
+            const div = document.createElement('div');
+            div.className = 'an-preview-thumb';
+            div.innerHTML = `<img src="${e.target.result}" alt="Preview">${i===0?'<span class="an-primary-badge">Main</span>':''}`;
+            preview.appendChild(div);
+        };
+        reader.readAsDataURL(file);
+    });
+}
+</script>
+{% endblock %}

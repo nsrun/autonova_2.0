@@ -1,0 +1,294 @@
+{% extends 'base.html' %}
+{% block title %}Vehicle Price Estimator — AutoNova{% endblock %}
+{% block content %}
+
+<section class="an-estimator-hero py-5">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-lg-6">
+        <div class="an-hero-badge mb-3"><i class="bi bi-calculator me-1"></i>Vehicle Price Estimator — INR</div>
+        <h1 class="fw-bold mb-3">What's your <span class="text-gradient">vehicle worth?</span></h1>
+        <p class="text-muted fs-5 mb-0">
+          AI-powered resale price — brand validated, all parameters considered.
+        </p>
+      </div>
+      <div class="col-lg-5 offset-lg-1 d-none d-lg-flex justify-content-center">
+        <div class="an-estimator-icon-wrap"><i class="bi bi-car-front-fill"></i></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="container pt-4">
+  <div class="d-flex gap-3 mb-4">
+    <a href="{% url 'estimator' %}" class="btn btn-primary px-4"><i class="bi bi-car-front me-2"></i>Vehicle Estimator</a>
+    <a href="{% url 'sparepart_estimator' %}" class="btn btn-outline-warning px-4"><i class="bi bi-gear me-2"></i>Spare Part Estimator</a>
+  </div>
+</div>
+
+<div class="container pb-5">
+  <div class="row g-5 justify-content-center">
+
+    <!-- ── FORM ───────────────────────────────────────────── -->
+    <div class="col-lg-5">
+      <div class="an-card p-4">
+        <h5 class="fw-bold mb-1"><i class="bi bi-sliders me-2 text-primary"></i>Vehicle Details</h5>
+        <p class="text-muted small mb-4">
+          Brand must be a real manufacturer — unknown names are rejected before estimating.
+        </p>
+
+        <form method="GET" novalidate>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold small">Vehicle Type <span class="text-danger">*</span></label>
+            {{ form.vehicle_type }}
+            {% if form.vehicle_type.errors %}
+            <div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.vehicle_type.errors|join:", " }}</div>
+            {% endif %}
+          </div>
+
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <label class="form-label fw-semibold small">Brand <span class="text-danger">*</span></label>
+              {{ form.brand }}
+              {% if form.brand.errors %}
+              <div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.brand.errors|join:", " }}</div>
+              {% endif %}
+              <div class="form-text">e.g. Maruti, Honda, Royal Enfield</div>
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-semibold small">Model <span class="text-success small fw-normal">(+accuracy)</span></label>
+              {{ form.model }}
+              <div class="form-text">e.g. Swift, City, Classic 350</div>
+            </div>
+          </div>
+
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <label class="form-label fw-semibold small">Year <span class="text-danger">*</span></label>
+              {{ form.year }}
+              {% if form.year.errors %}
+              <div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.year.errors|join:", " }}</div>
+              {% endif %}
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-semibold small">Condition <span class="text-danger">*</span></label>
+              {{ form.condition }}
+              {% if form.condition.errors %}
+              <div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.condition.errors|join:", " }}</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold small">KM Driven</label>
+            {{ form.km_driven }}
+            {% if form.km_driven.errors %}
+            <div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.km_driven.errors|join:", " }}</div>
+            {% endif %}
+            <div class="form-text">Leave blank if unknown</div>
+          </div>
+
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <label class="form-label fw-semibold small">Fuel Type</label>
+              {{ form.fuel_type }}
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-semibold small">No. of Owners</label>
+              {{ form.num_owners }}
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label fw-semibold small">Insurance Status</label>
+            {{ form.insurance }}
+          </div>
+
+          <!-- Non-field errors (cross-field validation) -->
+          {% if form.non_field_errors %}
+          <div class="alert alert-danger py-2 mb-3">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+          </div>
+          {% endif %}
+
+          <button type="submit" class="btn btn-primary w-100 btn-lg">
+            <i class="bi bi-calculator me-2"></i>Get Estimate
+          </button>
+        </form>
+      </div>
+
+      <!-- Tip card -->
+      <div class="an-card p-3 mt-3" style="border-left:3px solid var(--b600)">
+        <p class="fw-semibold small mb-2"><i class="bi bi-lightbulb-fill text-primary me-1"></i>What gets validated</p>
+        <ul class="text-muted small mb-0" style="padding-left:1.2rem">
+          <li>Brand checked against 60+ known manufacturers</li>
+          <li>Typos flagged — "mercides" → "Did you mean Mercedes?"</li>
+          <li>Brand New + high KM → blocked</li>
+          <li>Old vehicle + Like New → blocked</li>
+          <li>Future year → blocked</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ── RESULT ───────────────────────────────────────────── -->
+    <div class="col-lg-6">
+
+      {% if result %}
+
+        {% if result.error %}
+        <!-- ── VALIDATION ERROR ───────────────────────────── -->
+        <div class="an-card p-0 overflow-hidden" style="border-top:4px solid #dc2626">
+          <div class="p-4" style="background:#fef2f2">
+            <div class="d-flex align-items-center gap-3 mb-3">
+              <div style="width:48px;height:48px;border-radius:14px;background:#fee2e2;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                <i class="bi bi-exclamation-triangle-fill text-danger fs-4"></i>
+              </div>
+              <div>
+                <div class="fw-bold" style="color:#dc2626">Cannot Estimate — Invalid Input</div>
+                <div class="text-muted small">Please fix the issue below and try again</div>
+              </div>
+            </div>
+            <div class="alert alert-danger mb-0">
+              <i class="bi bi-x-circle-fill me-2"></i><strong>{{ result.error }}</strong>
+            </div>
+          </div>
+          <div class="p-4 border-top">
+            <p class="fw-semibold small mb-3">Common mistakes:</p>
+            <div class="an-how-it-works">
+              <div class="an-how-step">
+                <div class="an-how-num" style="background:#dc2626">!</div>
+                <div>Misspelled brand — <strong>"mercides"</strong> should be <strong>"Mercedes"</strong></div>
+              </div>
+              <div class="an-how-step">
+                <div class="an-how-num" style="background:#dc2626">!</div>
+                <div>Made-up or unknown brand name — only real manufacturers accepted</div>
+              </div>
+              <div class="an-how-step">
+                <div class="an-how-num" style="background:#dc2626">!</div>
+                <div><strong>Brand New</strong> condition with high KM driven</div>
+              </div>
+              <div class="an-how-step">
+                <div class="an-how-num" style="background:#dc2626">!</div>
+                <div><strong>Like New</strong> condition for a vehicle 15+ years old</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {% else %}
+        <!-- ── VALID RESULT ───────────────────────────────── -->
+        <div class="an-estimate-result">
+
+          <div class="an-estimate-header">
+            <i class="bi bi-graph-up-arrow me-2"></i>Vehicle Price Estimation
+          </div>
+
+          <div class="an-estimate-main-price">
+            <div class="an-estimate-label">Estimated Market Value</div>
+            <div class="an-estimate-value">₹{{ result.estimated_price|floatformat:0 }}</div>
+          </div>
+
+          <div class="an-estimate-range-row">
+            <div class="an-range-item an-range-low">
+              <div class="an-range-label">Low</div>
+              <div class="an-range-val">₹{{ result.low_price|floatformat:0 }}</div>
+            </div>
+            <div class="an-range-divider">—</div>
+            <div class="an-range-item an-range-high">
+              <div class="an-range-label">High</div>
+              <div class="an-range-val">₹{{ result.high_price|floatformat:0 }}</div>
+            </div>
+          </div>
+
+          <div class="an-estimate-bar-wrap">
+            <div class="an-estimate-bar"><div class="an-estimate-bar-fill"></div></div>
+            <div class="d-flex justify-content-between">
+              <small class="text-muted">₹{{ result.low_price|floatformat:0 }}</small>
+              <small class="text-muted">₹{{ result.high_price|floatformat:0 }}</small>
+            </div>
+          </div>
+
+          <!-- Breakdown -->
+          {% if result.base_price %}
+          <div class="px-4 pb-2 pt-3">
+            <h6 class="fw-semibold small text-muted mb-2">PRICE BREAKDOWN</h6>
+            <div class="d-flex justify-content-between small mb-1">
+              <span class="text-muted">Base Market Price (New)</span>
+              <span class="fw-semibold">₹{{ result.base_price|floatformat:0 }}</span>
+            </div>
+            <div class="d-flex justify-content-between small mb-1">
+              <span class="text-muted">Depreciation ({{ result.age }} yr{% if result.age != 1 %}s{% endif %})</span>
+              <span class="fw-semibold text-danger">-{{ result.depreciation_pct }}%</span>
+            </div>
+            <div class="d-flex justify-content-between small mb-1">
+              <span class="text-muted">Resale Tier</span>
+              <span>
+                {% if result.resale_tier == 'HRV' %}
+                  <span class="badge bg-success">High Resale Value</span>
+                {% elif result.resale_tier == 'LRV' %}
+                  <span class="badge bg-warning text-dark">Low Resale Value</span>
+                {% else %}
+                  <span class="badge bg-secondary">Average Resale</span>
+                {% endif %}
+              </span>
+            </div>
+            <hr class="my-2">
+          </div>
+          {% endif %}
+
+          <div class="an-estimate-meta px-4 pb-3">
+            <span class="badge px-3 py-2 mb-2
+              {% if result.confidence == 'High' %}bg-success
+              {% elif result.confidence == 'Medium' %}bg-warning text-dark
+              {% else %}bg-secondary{% endif %}">
+              <i class="bi bi-patch-check me-1"></i>{{ result.confidence }} Confidence
+            </span>
+            <p class="text-muted small mb-0">{{ result.explanation }}</p>
+            {% if result.confidence == 'Low' %}
+            <div class="mt-2 p-2 rounded small" style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2)">
+              <i class="bi bi-info-circle text-warning me-1"></i>
+              Add model name for higher accuracy (e.g. Swift, Classic 350, Creta).
+            </div>
+            {% endif %}
+          </div>
+
+          <div class="p-4 d-flex gap-2 flex-wrap" style="border-top:1px solid var(--i100)">
+            <a href="/sell/vehicle/" class="btn btn-primary flex-fill">
+              <i class="bi bi-car-front me-2"></i>List at this price
+            </a>
+            <a href="/browse/?listing_type=vehicle" class="btn btn-outline-primary flex-fill">
+              <i class="bi bi-search me-2"></i>Compare listings
+            </a>
+          </div>
+
+        </div>
+        {% endif %}
+
+      {% else %}
+      <!-- ── EMPTY STATE ────────────────────────────────── -->
+      <div class="an-estimate-empty text-center">
+        <div class="an-estimate-empty-icon"><i class="bi bi-car-front"></i></div>
+        <h5 class="fw-bold mt-3 mb-2">Your estimate will appear here</h5>
+        <p class="text-muted">Fill in the form and click "Get Estimate" for an accurate INR valuation.</p>
+        <div class="an-how-it-works mt-4 text-start">
+          <h6 class="fw-semibold mb-3">What affects the price?</h6>
+          <div class="an-how-step"><div class="an-how-num">1</div><div><strong>Brand + Model</strong> — validated against real manufacturers, model-level pricing</div></div>
+          <div class="an-how-step"><div class="an-how-num">2</div><div><strong>Year + Condition</strong> — real Indian market depreciation curves</div></div>
+          <div class="an-how-step"><div class="an-how-num">3</div><div><strong>KM Driven</strong> — compared against expected km for the vehicle age</div></div>
+          <div class="an-how-step"><div class="an-how-num">4</div><div><strong>Fuel, Owners, Insurance</strong> — all factored into final price</div></div>
+        </div>
+        <div class="mt-4 p-3 rounded" style="background:var(--b50)">
+          <p class="text-muted small mb-2 fw-semibold">Also try our Spare Part Estimator</p>
+          <a href="{% url 'sparepart_estimator' %}" class="btn btn-warning btn-sm">
+            <i class="bi bi-gear me-1"></i>Estimate Spare Part Price
+          </a>
+        </div>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+{% endblock %}

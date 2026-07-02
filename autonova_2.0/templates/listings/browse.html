@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% block title %}Browse — AutoNova{% endblock %}
+{% block content %}
+<div class="an-page-header py-4 mb-4">
+    <div class="container">
+        <h1 class="fw-bold mb-1">Browse Listings</h1>
+        <p class="text-muted mb-0">{{ total_results }} result{{ total_results|pluralize }} found</p>
+    </div>
+</div>
+<div class="container pb-5">
+    <div class="row g-4">
+        <!-- Filters -->
+        <div class="col-lg-3">
+            <div class="an-filter-card mb-3">
+                <h6 class="fw-bold mb-3"><i class="bi bi-sliders me-2"></i>Filters</h6>
+                <form action="/browse/" method="GET">
+                    <div class="mb-3"><label class="form-label fw-semibold small">Search</label>{{ form.query }}</div>
+                    <div class="mb-3"><label class="form-label fw-semibold small">Type</label>{{ form.listing_type }}</div>
+                    <div class="mb-3"><label class="form-label fw-semibold small">Category</label>{{ form.category }}</div>
+                    <div class="mb-3"><label class="form-label fw-semibold small">Fuel Type</label>{{ form.fuel_type }}</div>
+                    <div class="mb-3"><label class="form-label fw-semibold small">Max KM Driven</label>{{ form.max_km }}</div>
+                    <div class="mb-3"><label class="form-label fw-semibold small">Min Price (₹)</label>{{ form.min_price }}</div>
+                    <div class="mb-3"><label class="form-label fw-semibold small">Max Price (₹)</label>{{ form.max_price }}</div>
+                    <div class="mb-3"><label class="form-label fw-semibold small">Location</label>{{ form.location }}</div>
+                    <button type="submit" class="btn btn-primary w-100"><i class="bi bi-search me-1"></i>Apply Filters</button>
+                    <a href="/browse/" class="btn btn-outline-secondary w-100 mt-2">Clear All</a>
+                </form>
+            </div>
+            <!-- Quick type filters -->
+            <div class="an-filter-card">
+                <h6 class="fw-bold mb-3">Quick Browse</h6>
+                <a href="/browse/?listing_type=vehicle" class="an-cat-link"><i class="bi bi-car-front me-2 text-primary"></i>All Vehicles<span class="ms-auto badge bg-primary-subtle text-primary">→</span></a>
+                <a href="/browse/?listing_type=sparepart" class="an-cat-link"><i class="bi bi-gear me-2 text-warning"></i>All Spare Parts<span class="ms-auto badge bg-warning-subtle text-warning">→</span></a>
+                <hr class="my-2">
+                {% for cat in vehicle_cats %}
+                <a href="/category/{{ cat.slug }}/" class="an-cat-link"><i class="bi {{ cat.icon }} me-2"></i>{{ cat.name }}</a>
+                {% endfor %}
+                <hr class="my-2">
+                {% for cat in spare_cats %}
+                <a href="/category/{{ cat.slug }}/" class="an-cat-link"><i class="bi {{ cat.icon }} me-2"></i>{{ cat.name }}</a>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Results -->
+        <div class="col-lg-9">
+            <!-- Tabs -->
+            <div class="d-flex gap-2 mb-4 flex-wrap">
+                <a href="/browse/" class="btn btn-sm {% if not listing_type %}btn-primary{% else %}btn-outline-secondary{% endif %}">All ({{ total_results }})</a>
+                <a href="/browse/?listing_type=vehicle{% if request.GET.query %}&query={{ request.GET.query }}{% endif %}" class="btn btn-sm {% if listing_type == 'vehicle' %}btn-primary{% else %}btn-outline-secondary{% endif %}"><i class="bi bi-car-front me-1"></i>Vehicles ({{ page_vehicles.paginator.count }})</a>
+                <a href="/browse/?listing_type=sparepart{% if request.GET.query %}&query={{ request.GET.query }}{% endif %}" class="btn btn-sm {% if listing_type == 'sparepart' %}btn-warning text-white{% else %}btn-outline-secondary{% endif %}"><i class="bi bi-gear me-1"></i>Spare Parts ({{ page_parts.paginator.count }})</a>
+            </div>
+
+            {% if listing_type != 'sparepart' and page_vehicles %}
+            {% if listing_type != 'vehicle' %}<h5 class="fw-bold mb-3"><i class="bi bi-car-front-fill text-primary me-2"></i>Vehicles</h5>{% endif %}
+            <div class="row g-4 mb-5">
+                {% for listing in page_vehicles %}
+                <div class="col-sm-6 col-xl-4">{% include 'partials/vehicle_card.html' with listing=listing %}</div>
+                {% empty %}
+                <div class="col-12 text-center py-4"><i class="bi bi-car-front display-4 text-muted"></i><p class="text-muted mt-2">No vehicles found</p></div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% if listing_type != 'vehicle' and page_parts %}
+            {% if listing_type != 'sparepart' %}<h5 class="fw-bold mb-3"><i class="bi bi-gear-fill text-warning me-2"></i>Spare Parts</h5>{% endif %}
+            <div class="row g-4">
+                {% for listing in page_parts %}
+                <div class="col-sm-6 col-xl-4">{% include 'partials/part_card.html' with listing=listing %}</div>
+                {% empty %}
+                <div class="col-12 text-center py-4"><i class="bi bi-gear display-4 text-muted"></i><p class="text-muted mt-2">No spare parts found</p></div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% if not page_vehicles and not page_parts %}
+            <div class="text-center py-5">
+                <i class="bi bi-search display-3 text-muted"></i>
+                <h4 class="text-muted mt-3">No results found</h4>
+                <p class="text-muted">Try different filters or <a href="/browse/">clear all</a></p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block title %}{{ category.name }} — AutoNova{% endblock %}
+{% block content %}
+<div class="an-page-header py-4 mb-5">
+    <div class="container">
+        <div class="d-flex align-items-center gap-3">
+            <div class="an-cat-header-icon {% if category.category_type == 'sparepart' %}bg-warning-subtle text-warning{% endif %}">
+                <i class="bi {{ category.icon }}"></i>
+            </div>
+            <div>
+                <div class="an-hero-badge mb-1">{% if category.category_type == 'vehicle' %}Vehicle Category{% else %}Spare Parts Category{% endif %}</div>
+                <h1 class="fw-bold mb-0">{{ category.name }}</h1>
+                <p class="text-muted mb-0">{{ page_obj.paginator.count }} listing{{ page_obj.paginator.count|pluralize }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="container pb-5">
+    <div class="row g-4">
+        {% for listing in page_obj %}
+        <div class="col-sm-6 col-md-4 col-lg-3">
+            {% if listing_type == 'vehicle' %}
+                {% include 'partials/vehicle_card.html' with listing=listing %}
+            {% else %}
+                {% include 'partials/part_card.html' with listing=listing %}
+            {% endif %}
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <i class="bi bi-inbox display-4 text-muted"></i>
+            <h4 class="text-muted mt-3">No listings in this category yet</h4>
+            {% if listing_type == 'vehicle' %}
+            <a href="/sell/vehicle/" class="btn btn-primary mt-2">List first vehicle</a>
+            {% else %}
+            <a href="/sell/part/" class="btn btn-warning text-white mt-2">List first part</a>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% if page_obj.has_other_pages %}
+    <nav class="mt-5 d-flex justify-content-center">
+        <ul class="pagination an-pagination">
+            {% if page_obj.has_previous %}<li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}"><i class="bi bi-chevron-left"></i></a></li>{% endif %}
+            {% for num in page_obj.paginator.page_range %}<li class="page-item {% if num == page_obj.number %}active{% endif %}"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>{% endfor %}
+            {% if page_obj.has_next %}<li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}"><i class="bi bi-chevron-right"></i></a></li>{% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block title %}What Are You Selling? — AutoNova{% endblock %}
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 text-center mb-5">
+            <h1 class="fw-bold mb-2">What are you selling?</h1>
+            <p class="text-muted fs-5">Choose the type of listing to get started</p>
+        </div>
+        <div class="col-lg-10">
+            <div class="row g-4 justify-content-center">
+                <div class="col-md-5">
+                    <a href="/sell/vehicle/" class="an-sell-choice-card text-decoration-none">
+                        <div class="an-sell-choice-icon bg-primary-subtle text-primary">
+                            <i class="bi bi-car-front-fill"></i>
+                        </div>
+                        <h3 class="fw-bold mt-4 mb-2">Vehicle</h3>
+                        <p class="text-muted mb-4">Car, bike, scooter, truck, tractor or any motorised vehicle</p>
+                        <div class="d-flex flex-wrap gap-2 justify-content-center mb-4">
+                            {% for cat in vehicle_cats %}
+                            <span class="badge bg-primary-subtle text-primary">{{ cat.name }}</span>
+                            {% endfor %}
+                        </div>
+                        <span class="btn btn-primary btn-lg px-5"><i class="bi bi-arrow-right me-2"></i>List Vehicle</span>
+                    </a>
+                </div>
+                <div class="col-md-5">
+                    <a href="/sell/part/" class="an-sell-choice-card an-sell-choice-part text-decoration-none">
+                        <div class="an-sell-choice-icon bg-warning-subtle text-warning">
+                            <i class="bi bi-gear-fill"></i>
+                        </div>
+                        <h3 class="fw-bold mt-4 mb-2">Spare Part</h3>
+                        <p class="text-muted mb-4">Engine parts, body parts, tyres, batteries, accessories and more</p>
+                        <div class="d-flex flex-wrap gap-2 justify-content-center mb-4">
+                            {% for cat in spare_cats %}
+                            <span class="badge bg-warning-subtle text-warning">{{ cat.name }}</span>
+                            {% endfor %}
+                        </div>
+                        <span class="btn btn-warning btn-lg text-white px-5"><i class="bi bi-arrow-right me-2"></i>List Part</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

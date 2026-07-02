@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard — AutoNova{% endblock %}
+{% block content %}
+<div class="an-page-header py-4 mb-5">
+    <div class="container d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div><h1 class="fw-bold mb-1">My Dashboard</h1><p class="text-muted mb-0">Welcome, {{ user.first_name|default:user.username }}!</p></div>
+        <div class="d-flex gap-2">
+            <a href="/sell/vehicle/" class="btn btn-primary"><i class="bi bi-car-front me-1"></i>List Vehicle</a>
+            <a href="/sell/part/" class="btn btn-warning text-white"><i class="bi bi-gear me-1"></i>List Part</a>
+        </div>
+    </div>
+</div>
+<div class="container pb-5">
+    <!-- Stats -->
+    <div class="row g-3 mb-5">
+        <div class="col-6 col-lg-2"><div class="an-stat-card text-center"><div class="an-stat-card-icon" style="color:#6366f1"><i class="bi bi-collection"></i></div><div class="an-stat-card-num" style="color:#6366f1">{{ total }}</div><div class="an-stat-card-label">Total</div></div></div>
+        <div class="col-6 col-lg-2"><div class="an-stat-card an-stat-pending text-center"><div class="an-stat-card-icon"><i class="bi bi-hourglass-split"></i></div><div class="an-stat-card-num">{{ v_pending|add:p_pending }}</div><div class="an-stat-card-label">Pending</div></div></div>
+        <div class="col-6 col-lg-2"><div class="an-stat-card an-stat-approved text-center"><div class="an-stat-card-icon"><i class="bi bi-check-circle"></i></div><div class="an-stat-card-num">{{ v_approved|add:p_approved }}</div><div class="an-stat-card-label">Approved</div></div></div>
+        <div class="col-6 col-lg-2"><div class="an-stat-card an-stat-rejected text-center"><div class="an-stat-card-icon"><i class="bi bi-x-circle"></i></div><div class="an-stat-card-num">{{ v_rejected|add:p_rejected }}</div><div class="an-stat-card-label">Rejected</div></div></div>
+        <div class="col-6 col-lg-2"><div class="an-stat-card text-center"><div class="an-stat-card-icon text-primary"><i class="bi bi-car-front"></i></div><div class="an-stat-card-num text-primary">{{ vehicle_listings.count }}</div><div class="an-stat-card-label">Vehicles</div></div></div>
+        <div class="col-6 col-lg-2"><div class="an-stat-card text-center"><div class="an-stat-card-icon text-warning"><i class="bi bi-gear"></i></div><div class="an-stat-card-num text-warning">{{ part_listings.count }}</div><div class="an-stat-card-label">Parts</div></div></div>
+    </div>
+
+    <!-- Vehicle Listings -->
+    {% if vehicle_listings %}
+    <div class="an-card mb-5">
+        <div class="p-4 border-bottom d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold mb-0"><i class="bi bi-car-front-fill text-primary me-2"></i>My Vehicles</h5>
+            <a href="/sell/vehicle/" class="btn btn-primary btn-sm">+ Add Vehicle</a>
+        </div>
+        <div class="table-responsive">
+            <table class="table an-table mb-0">
+                <thead><tr><th>Vehicle</th><th>Details</th><th>Price</th><th>Status</th><th>Actions</th></tr></thead>
+                <tbody>
+                    {% for listing in vehicle_listings %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center gap-3">
+                                {% with img=listing.get_primary_image %}{% if img %}<img src="{{ img.image.url }}" class="an-table-thumb">{% else %}<div class="an-table-thumb-placeholder"><i class="bi bi-car-front"></i></div>{% endif %}{% endwith %}
+                                <div><div class="fw-semibold small">{{ listing.title|truncatechars:35 }}</div><div class="text-muted" style="font-size:11px">{{ listing.location }}</div></div>
+                            </div>
+                        </td>
+                        <td><small class="text-muted">{{ listing.year }} · {{ listing.km_driven|floatformat:0 }} km · {{ listing.get_fuel_type_display }}</small></td>
+                        <td><span class="fw-semibold">₹{{ listing.price|floatformat:0 }}</span></td>
+                        <td>
+                            {% if listing.status == 'approved' %}<span class="badge bg-success-subtle text-success an-status-badge"><i class="bi bi-check-circle me-1"></i>Live</span>
+                            {% elif listing.status == 'pending' %}<span class="badge bg-warning-subtle text-warning an-status-badge"><i class="bi bi-hourglass me-1"></i>Pending</span>
+                            {% elif listing.status == 'sold' %}<span class="badge bg-secondary an-status-badge">Sold</span>
+                            {% else %}<span class="badge bg-danger-subtle text-danger an-status-badge"><i class="bi bi-x-circle me-1"></i>Rejected</span>{% endif %}
+                        </td>
+                        <td>
+                            <div class="d-flex gap-1">
+                                {% if listing.status == 'approved' %}<a href="/vehicle/{{ listing.slug }}/" class="btn btn-sm btn-outline-primary" title="View"><i class="bi bi-eye"></i></a>{% endif %}
+                                <a href="/vehicle/{{ listing.slug }}/edit/" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
+                                <a href="/vehicle/{{ listing.slug }}/delete/" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Spare Part Listings -->
+    {% if part_listings %}
+    <div class="an-card mb-5">
+        <div class="p-4 border-bottom d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold mb-0"><i class="bi bi-gear-fill text-warning me-2"></i>My Spare Parts</h5>
+            <a href="/sell/part/" class="btn btn-warning btn-sm text-white">+ Add Part</a>
+        </div>
+        <div class="table-responsive">
+            <table class="table an-table mb-0">
+                <thead><tr><th>Part</th><th>Compatibility</th><th>Price</th><th>Qty</th><th>Status</th><th>Actions</th></tr></thead>
+                <tbody>
+                    {% for listing in part_listings %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center gap-3">
+                                {% with img=listing.get_primary_image %}{% if img %}<img src="{{ img.image.url }}" class="an-table-thumb">{% else %}<div class="an-table-thumb-placeholder"><i class="bi bi-gear"></i></div>{% endif %}{% endwith %}
+                                <div><div class="fw-semibold small">{{ listing.title|truncatechars:35 }}</div><div class="text-muted" style="font-size:11px">{{ listing.part_name }}</div></div>
+                            </div>
+                        </td>
+                        <td><small class="text-muted">{{ listing.compatible_brand|default:"Universal" }} {{ listing.compatible_model }}</small></td>
+                        <td><span class="fw-semibold">₹{{ listing.price|floatformat:0 }}</span></td>
+                        <td><span class="badge bg-light text-dark">{{ listing.quantity }}</span></td>
+                        <td>
+                            {% if listing.status == 'approved' %}<span class="badge bg-success-subtle text-success an-status-badge">Live</span>
+                            {% elif listing.status == 'pending' %}<span class="badge bg-warning-subtle text-warning an-status-badge">Pending</span>
+                            {% else %}<span class="badge bg-danger-subtle text-danger an-status-badge">Rejected</span>{% endif %}
+                        </td>
+                        <td>
+                            <div class="d-flex gap-1">
+                                {% if listing.status == 'approved' %}<a href="/part/{{ listing.slug }}/" class="btn btn-sm btn-outline-warning"><i class="bi bi-eye"></i></a>{% endif %}
+                                <a href="/part/{{ listing.slug }}/edit/" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
+                                <a href="/part/{{ listing.slug }}/delete/" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if not vehicle_listings and not part_listings %}
+    <div class="an-card p-5 text-center">
+        <i class="bi bi-inbox display-3 text-muted"></i>
+        <h4 class="text-muted mt-3">No listings yet</h4>
+        <p class="text-muted">Start selling vehicles or spare parts</p>
+        <div class="d-flex gap-3 justify-content-center mt-3">
+            <a href="/sell/vehicle/" class="btn btn-primary btn-lg"><i class="bi bi-car-front me-2"></i>List Vehicle</a>
+            <a href="/sell/part/" class="btn btn-warning text-white btn-lg"><i class="bi bi-gear me-2"></i>List Part</a>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="row g-3 mt-2">
+        <div class="col-md-6"><a href="/accounts/profile/" class="an-quick-link-card"><i class="bi bi-person-circle text-primary"></i><div><div class="fw-semibold">Edit Profile</div><div class="text-muted small">Update your info</div></div><i class="bi bi-chevron-right ms-auto text-muted"></i></a></div>
+        <div class="col-md-6"><a href="/estimator/" class="an-quick-link-card"><i class="bi bi-calculator text-success"></i><div><div class="fw-semibold">Vehicle Price Estimator</div><div class="text-muted small">Get fair market value</div></div><i class="bi bi-chevron-right ms-auto text-muted"></i></a></div>
+    </div>
+</div>
+{% endblock %}

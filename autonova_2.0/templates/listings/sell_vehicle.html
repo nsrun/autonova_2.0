@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+{% block title %}List a Vehicle — AutoNova{% endblock %}
+{% block content %}
+<div class="an-page-header py-4 mb-5">
+    <div class="container">
+        <div class="d-flex align-items-center gap-3">
+            <a href="/sell/" class="btn btn-light btn-sm"><i class="bi bi-arrow-left"></i></a>
+            <div><h1 class="fw-bold mb-0"><i class="bi bi-car-front-fill me-2 text-primary"></i>List a Vehicle</h1><p class="text-muted mb-0 small">Fill in vehicle details. Goes live after admin approval.</p></div>
+        </div>
+    </div>
+</div>
+<div class="container pb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-9">
+            <form method="POST" enctype="multipart/form-data" novalidate>
+                {% csrf_token %}
+
+                <!-- Section 1: Basic Info -->
+                <div class="an-form-section mb-4">
+                    <div class="an-form-section-header">
+                        <span class="an-step-num">1</span>
+                        <div><h5 class="mb-0">Basic Information</h5><small class="text-muted">Title, category and condition</small></div>
+                    </div>
+                    <div class="an-form-body">
+                        <div class="mb-3"><label class="form-label fw-semibold">Listing Title <span class="text-danger">*</span></label>{{ form.title }}{% if form.title.errors %}<div class="text-danger small">{{ form.title.errors }}</div>{% endif %}</div>
+                        <div class="row g-3">
+                            <div class="col-md-6"><label class="form-label fw-semibold">Category <span class="text-danger">*</span></label>{{ form.category }}</div>
+                            <div class="col-md-6"><label class="form-label fw-semibold">Condition <span class="text-danger">*</span></label>{{ form.condition }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 2: Vehicle Details -->
+                <div class="an-form-section mb-4">
+                    <div class="an-form-section-header">
+                        <span class="an-step-num">2</span>
+                        <div><h5 class="mb-0">Vehicle Details</h5><small class="text-muted">Brand, specs and technical info</small></div>
+                    </div>
+                    <div class="an-form-body">
+                        <div class="row g-3">
+                            <div class="col-md-4"><label class="form-label fw-semibold">Brand <span class="text-danger">*</span></label>{{ form.brand }}</div>
+                            <div class="col-md-4"><label class="form-label fw-semibold">Model <span class="text-danger">*</span></label>{{ form.model }}</div>
+                            <div class="col-md-4"><label class="form-label fw-semibold">Variant</label>{{ form.variant }}</div>
+                            <div class="col-md-3"><label class="form-label fw-semibold">Year <span class="text-danger">*</span></label>{{ form.year }}</div>
+                            <div class="col-md-3"><label class="form-label fw-semibold">Fuel Type</label>{{ form.fuel_type }}</div>
+                            <div class="col-md-3"><label class="form-label fw-semibold">Transmission</label>{{ form.transmission }}</div>
+                            <div class="col-md-3"><label class="form-label fw-semibold">No. of Owners</label>{{ form.num_owners }}</div>
+                            <div class="col-md-4"><label class="form-label fw-semibold">KM Driven <span class="text-danger">*</span></label>{{ form.km_driven }}</div>
+                            <div class="col-md-4"><label class="form-label fw-semibold">Engine (CC)</label>{{ form.engine_cc }}</div>
+                            <div class="col-md-4"><label class="form-label fw-semibold">Color</label>{{ form.color }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 3: Registration -->
+                <div class="an-form-section mb-4">
+                    <div class="an-form-section-header">
+                        <span class="an-step-num">3</span>
+                        <div><h5 class="mb-0">Registration & Insurance</h5></div>
+                    </div>
+                    <div class="an-form-body">
+                        <div class="row g-3">
+                            <div class="col-md-4"><label class="form-label fw-semibold">RTO State</label>{{ form.rto_state }}</div>
+                            <div class="col-md-4"><label class="form-label fw-semibold">Registration Year</label>{{ form.registration_year }}</div>
+                            <div class="col-md-4"><label class="form-label fw-semibold">Insurance Type</label>{{ form.insurance }}</div>
+                            <div class="col-md-6"><label class="form-label fw-semibold">Insurance Valid Until</label>{{ form.insurance_valid_until }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 4: Description -->
+                <div class="an-form-section mb-4">
+                    <div class="an-form-section-header">
+                        <span class="an-step-num">4</span>
+                        <div><h5 class="mb-0">Description & Location</h5></div>
+                    </div>
+                    <div class="an-form-body">
+                        <div class="mb-3"><label class="form-label fw-semibold">Description <span class="text-danger">*</span></label>{{ form.description }}</div>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Asking Price (₹) <span class="text-danger">*</span></label>
+                                <div class="input-group"><span class="input-group-text">₹</span>{{ form.price }}</div>
+                                <small class="text-muted">Not sure? <a href="/estimator/" target="_blank">Use our estimator</a></small>
+                            </div>
+                            <div class="col-md-6"><label class="form-label fw-semibold">Location <span class="text-danger">*</span></label>{{ form.location }}</div>
+                        </div>
+                        <div class="form-check mt-3">{{ form.is_negotiable }}<label class="form-check-label ms-2 fw-semibold">Price is Negotiable</label></div>
+                    </div>
+                </div>
+
+                <!-- Section 5: Images -->
+                <div class="an-form-section mb-4">
+                    <div class="an-form-section-header">
+                        <span class="an-step-num">5</span>
+                        <div><h5 class="mb-0">Upload Photos</h5><small class="text-muted">First photo is the main image. Add exterior, interior, engine shots.</small></div>
+                    </div>
+                    <div class="an-form-body">
+                        <div class="an-upload-zone" id="uploadZone">
+                            <input type="file" name="images" id="imageInput" multiple accept="image/*" class="an-upload-input">
+                            <i class="bi bi-cloud-arrow-up display-4 text-primary"></i>
+                            <h6 class="mt-2">Drag & drop photos here</h6>
+                            <p class="text-muted small">or click to browse — PNG, JPG, WEBP</p>
+                        </div>
+                        <div id="imagePreview" class="d-flex flex-wrap gap-2 mt-3"></div>
+                    </div>
+                </div>
+
+                <div class="an-card p-4 text-center">
+                    <div class="an-approval-notice mb-3"><i class="bi bi-info-circle-fill text-info me-2"></i>Your listing will be reviewed before going live (within 24 hours).</div>
+                    <button type="submit" class="btn btn-primary btn-lg px-5"><i class="bi bi-send me-2"></i>Submit Vehicle Listing</button>
+                    <a href="/accounts/dashboard/" class="btn btn-link ms-2">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+const input = document.getElementById('imageInput');
+const preview = document.getElementById('imagePreview');
+const zone = document.getElementById('uploadZone');
+zone.addEventListener('click', () => input.click());
+zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+zone.addEventListener('drop', e => { e.preventDefault(); zone.classList.remove('drag-over'); showPreviews(e.dataTransfer.files); });
+input.addEventListener('change', () => showPreviews(input.files));
+function showPreviews(files) {
+    preview.innerHTML = '';
+    [...files].forEach((file, i) => {
+        const reader = new FileReader();
+        reader.onload = e => {
+            const div = document.createElement('div');
+            div.className = 'an-preview-thumb';
+            div.innerHTML = `<img src="${e.target.result}" alt="Preview">${i===0?'<span class="an-primary-badge">Main</span>':''}`;
+            preview.appendChild(div);
+        };
+        reader.readAsDataURL(file);
+    });
+}
+</script>
+{% endblock %}

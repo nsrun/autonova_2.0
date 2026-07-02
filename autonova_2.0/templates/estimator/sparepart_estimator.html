@@ -1,0 +1,237 @@
+{% extends 'base.html' %}
+{% block title %}Spare Part Price Estimator — AutoNova{% endblock %}
+
+{% block content %}
+
+<section class="an-estimator-hero py-5">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-lg-6">
+        <div class="an-hero-badge mb-3" style="background:rgba(255,193,7,.15);color:#b8860b;">
+          <i class="bi bi-gear me-1"></i>Spare Part Estimator — INR
+        </div>
+        <h1 class="fw-bold mb-3">What's your <span class="text-gradient">spare part worth?</span></h1>
+        <p class="text-muted fs-5 mb-0">AI-powered price estimate — validated against real part categories, brand database &amp; condition.</p>
+      </div>
+      <div class="col-lg-5 offset-lg-1 d-none d-lg-flex justify-content-center">
+        <div class="an-estimator-icon-wrap" style="color:var(--gold)"><i class="bi bi-gear-wide-connected"></i></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="container pt-4">
+  <div class="d-flex gap-3 mb-4">
+    <a href="{% url 'estimator' %}" class="btn btn-outline-primary px-4"><i class="bi bi-car-front me-2"></i>Vehicle Estimator</a>
+    <a href="{% url 'sparepart_estimator' %}" class="btn btn-warning px-4"><i class="bi bi-gear me-2"></i>Spare Part Estimator</a>
+  </div>
+</div>
+
+<div class="container pb-5">
+  <div class="row g-5 justify-content-center">
+
+    <!-- FORM -->
+    <div class="col-lg-5">
+      <div class="an-card p-4">
+        <h5 class="fw-bold mb-1"><i class="bi bi-sliders me-2 text-warning"></i>Spare Part Details</h5>
+        <p class="text-muted small mb-4">Select the correct part type first — part name is validated against the selected category.</p>
+        <form method="GET" novalidate>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold small">Part Type <span class="text-danger">*</span></label>
+            {{ form.part_type }}
+            {% if form.part_type.errors %}<div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.part_type.errors|join:", " }}</div>{% endif %}
+            <div class="form-text"><i class="bi bi-info-circle me-1"></i>"Side Mirror" → Body Parts, "Brake Pad" → Brakes</div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold small">Part Name <span class="text-danger">*</span></label>
+            {{ form.part_name }}
+            {% if form.part_name.errors %}<div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.part_name.errors|join:", " }}</div>{% endif %}
+            <div class="form-text">e.g. Brake Pad, Alternator, Side Mirror, Alloy Wheel</div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold small">Brand / Manufacturer <span class="text-muted fw-normal">(optional)</span></label>
+            {{ form.brand }}
+            {% if form.brand.errors %}<div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.brand.errors|join:", " }}</div>{% endif %}
+            <div class="form-text">e.g. Bosch, MRF, Minda — leave blank for generic pricing</div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold small">Condition <span class="text-danger">*</span></label>
+            {{ form.condition }}
+            {% if form.condition.errors %}<div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.condition.errors|join:", " }}</div>{% endif %}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold small">Compatible Vehicle Type <span class="text-danger">*</span></label>
+            {{ form.compatible_vehicle_type }}
+            {% if form.compatible_vehicle_type.errors %}<div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.compatible_vehicle_type.errors|join:", " }}</div>{% endif %}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold small">Compatible Vehicle Brand <span class="text-muted fw-normal">(optional)</span></label>
+            {{ form.compatible_brand }}
+            {% if form.compatible_brand.errors %}<div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.compatible_brand.errors|join:", " }}</div>{% endif %}
+            <div class="form-text">e.g. Maruti Swift, Honda City, BMW 3 Series</div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label fw-semibold small">Quantity <span class="text-muted fw-normal">(optional)</span></label>
+            {{ form.quantity }}
+            {% if form.quantity.errors %}<div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>{{ form.quantity.errors|join:", " }}</div>{% endif %}
+          </div>
+
+          <button type="submit" class="btn btn-warning w-100 btn-lg fw-semibold">
+            <i class="bi bi-calculator me-2"></i>Get Spare Part Estimate
+          </button>
+        </form>
+      </div>
+
+      <div class="an-card p-3 mt-3" style="border-left:3px solid var(--gold)">
+        <p class="fw-semibold small mb-2"><i class="bi bi-lightbulb-fill text-warning me-1"></i>Validation rules</p>
+        <ul class="text-muted small mb-0" style="padding-left:1.2rem">
+          <li>Part name must match selected type — "Side Mirror" → <strong>Body Parts</strong></li>
+          <li>Brand checked against 80+ known automotive brands</li>
+          <li>Compatible Brand = vehicle name, not a part name</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- RESULT -->
+    <div class="col-lg-6">
+
+      {% if result %}
+
+        {% if result.error %}
+        <!-- Hard validation error -->
+        <div class="an-card p-0 overflow-hidden" style="border-top:4px solid #dc2626">
+          <div class="p-4" style="background:#fef2f2">
+            <div class="d-flex align-items-center gap-3 mb-3">
+              <div style="width:44px;height:44px;border-radius:12px;background:#fee2e2;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                <i class="bi bi-exclamation-triangle-fill text-danger fs-5"></i>
+              </div>
+              <div>
+                <div class="fw-bold" style="color:#dc2626">Validation Error</div>
+                <div class="text-muted small">Please fix the issue and try again</div>
+              </div>
+            </div>
+            <div class="alert alert-danger mb-0 py-2">
+              <i class="bi bi-x-circle-fill me-2"></i>{{ result.error }}
+            </div>
+          </div>
+          <div class="p-4 border-top">
+            <p class="fw-semibold small mb-2">Common mistakes:</p>
+            <div class="an-how-it-works">
+              <div class="an-how-step">
+                <div class="an-how-num" style="background:#dc2626">!</div>
+                <div>Selecting <strong>Engine Parts</strong> but entering "Side Mirror" — use <strong>Body Parts</strong></div>
+              </div>
+              <div class="an-how-step">
+                <div class="an-how-num" style="background:#dc2626">!</div>
+                <div>Misspelled brand like "mercides" — type carefully or leave blank</div>
+              </div>
+              <div class="an-how-step">
+                <div class="an-how-num" style="background:#dc2626">!</div>
+                <div>Entering a part name in the "Compatible Vehicle Brand" field</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {% else %}
+
+        <!-- Warnings (non-blocking) -->
+        {% if result.warnings %}
+        <div class="mb-3">
+          {% for w in result.warnings %}
+          <div class="alert mb-2 py-3" style="background:#fffbeb;border:1px solid rgba(245,158,11,.3);border-radius:var(--r-md)">
+            <div class="d-flex gap-2 align-items-start">
+              <i class="bi bi-exclamation-triangle-fill mt-1" style="color:#d97706;flex-shrink:0"></i>
+              <div>
+                <div class="fw-semibold small" style="color:#92400e">{{ w.message }}</div>
+                {% if w.suggestion %}<div class="text-muted small mt-1"><i class="bi bi-lightbulb me-1"></i>{{ w.suggestion }}</div>{% endif %}
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Price result -->
+        {% if result.estimated_price %}
+        <div class="an-estimate-result" style="border-top:4px solid var(--gold)">
+
+          <div class="an-estimate-header" style="background:rgba(255,193,7,.10);color:#856404">
+            <i class="bi bi-gear-wide-connected me-2"></i>Spare Part Price Estimation
+          </div>
+
+          <div class="an-estimate-main-price">
+            <div class="an-estimate-label">Estimated Market Value</div>
+            <div class="an-estimate-value" style="color:var(--gold)">₹{{ result.estimated_price|floatformat:0 }}</div>
+            {% if result.unit_price and result.unit_price != result.estimated_price %}
+            <div class="text-muted small mt-1">Unit price: ₹{{ result.unit_price|floatformat:0 }} &nbsp;·&nbsp; Total for {{ request.GET.quantity|default:"1" }} unit(s)</div>
+            {% endif %}
+          </div>
+
+          <div class="an-estimate-range-row">
+            <div class="an-range-item an-range-low"><div class="an-range-label">Low</div><div class="an-range-val">₹{{ result.low_price|floatformat:0 }}</div></div>
+            <div class="an-range-divider">—</div>
+            <div class="an-range-item an-range-high"><div class="an-range-label">High</div><div class="an-range-val">₹{{ result.high_price|floatformat:0 }}</div></div>
+          </div>
+
+          <div class="an-estimate-bar-wrap">
+            <div class="an-estimate-bar"><div class="an-estimate-bar-fill" style="background:linear-gradient(90deg,var(--gold),#fd7e14)"></div></div>
+            <div class="d-flex justify-content-between">
+              <small class="text-muted">₹{{ result.low_price|floatformat:0 }}</small>
+              <small class="text-muted">₹{{ result.high_price|floatformat:0 }}</small>
+            </div>
+          </div>
+
+          <div class="an-estimate-meta px-4 pb-3">
+            <span class="badge px-3 py-2 mb-2 {% if result.confidence == 'High' %}bg-success{% elif result.confidence == 'Medium' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
+              <i class="bi bi-patch-check me-1"></i>{{ result.confidence }} Confidence
+            </span>
+            <p class="text-muted small mb-0">{{ result.explanation }}</p>
+            {% if result.confidence == 'Low' %}
+            <div class="mt-2 p-2 rounded small" style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2)">
+              <i class="bi bi-info-circle text-warning me-1"></i>Add brand and vehicle compatibility for a more accurate estimate.
+            </div>
+            {% endif %}
+          </div>
+
+          <div class="p-4 d-flex gap-2 flex-wrap" style="border-top:1px solid var(--i100)">
+            <a href="/sell/part/" class="btn btn-warning flex-fill fw-semibold"><i class="bi bi-gear me-2"></i>List this part</a>
+            <a href="/browse/?listing_type=sparepart" class="btn btn-outline-warning flex-fill"><i class="bi bi-search me-2"></i>Compare listings</a>
+          </div>
+
+        </div>
+        {% endif %}
+
+        {% endif %}
+
+      {% else %}
+      <!-- Empty state -->
+      <div class="an-estimate-empty text-center">
+        <div class="an-estimate-empty-icon" style="color:var(--gold)"><i class="bi bi-gear-wide-connected"></i></div>
+        <h5 class="fw-bold mt-3 mb-2">Your estimate will appear here</h5>
+        <p class="text-muted">Fill in the form and click "Get Spare Part Estimate".</p>
+        <div class="an-how-it-works mt-4 text-start">
+          <h6 class="fw-semibold mb-3">How it works</h6>
+          <div class="an-how-step"><div class="an-how-num" style="background:var(--gold);color:#000">1</div><div>Select correct part type — engine, brakes, body, lights…</div></div>
+          <div class="an-how-step"><div class="an-how-num" style="background:var(--gold);color:#000">2</div><div>Enter exact part name matching the category</div></div>
+          <div class="an-how-step"><div class="an-how-num" style="background:var(--gold);color:#000">3</div><div>Add brand — checked against real brand database</div></div>
+          <div class="an-how-step"><div class="an-how-num" style="background:var(--gold);color:#000">4</div><div>Get accurate INR estimate powered by AI</div></div>
+        </div>
+        <div class="mt-4 p-3 rounded" style="background:var(--b50)">
+          <p class="text-muted small mb-2 fw-semibold">Also try our Vehicle Estimator</p>
+          <a href="{% url 'estimator' %}" class="btn btn-primary btn-sm"><i class="bi bi-car-front me-1"></i>Estimate Vehicle Price</a>
+        </div>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+{% endblock %}
